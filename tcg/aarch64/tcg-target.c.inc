@@ -14,6 +14,14 @@
 #include "../tcg-pool.c.inc"
 #include "qemu/bitops.h"
 
+/* */
+enum {
+    TSO_ENABLED,
+    TSO_DISABLED,
+    TSO_UNKNOWN
+} TSOStatus;
+TSOStatus TSO_Status;
+
 /* We're going to re-use TCGType in setting of the SF bit, which controls
    the size of the operation performed.  If we know the values match, it
    makes things much cleaner.  */
@@ -2918,6 +2926,29 @@ static TCGConstraintSetIndex tcg_target_op_def(TCGOpcode op)
     }
 }
 
+void check_tso() {
+    if(TSO_UNKNOWN == TSO_Status) {
+        // TODO check for TSO support - currently only supported by Mac M1
+        // maybe like this? https://stackoverflow.com/a/26874335
+        // but preprocessor seems to be easier
+
+        TSO_Status = TSO_DISABLED;
+
+#ifdef __APPLE__
+        // Assumption: this code only gets compiled if we compile for Apple while the target architectue is arm
+        // this means Rosetta 2 should be available and with it thre should be hardware support for TSO
+        TSO_Status = TSO_ENABLED;
+#endif
+        target_memory_ordering = TSO_ENABLED == TSO_Status ? (TCG_MO_ALL & ~TCG_MO_ST_LD) : (0);
+    }
+}
+
+void enable_tso() {
+    if(TSO_ENABLED == TSO_Status) {
+        // TODO do system call to enable TSO; generate instructions to to call the system call?
+    }
+}
+
 static void tcg_target_init(TCGContext *s)
 {
     tcg_target_available_regs[TCG_TYPE_I32] = 0xffffffffu;
@@ -2952,6 +2983,9 @@ static void tcg_target_init(TCGContext *s)
     tcg_regset_set_reg(s->reserved_regs, TCG_REG_TMP);
     tcg_regset_set_reg(s->reserved_regs, TCG_REG_X18); /* platform register */
     tcg_regset_set_reg(s->reserved_regs, TCG_VEC_TMP);
+
+    //check if TSO is available to save on memory fences, TSO gets enabled per thread
+    check_tso();
 }
 
 /* Saving pairs: (X19, X20) .. (X27, X28), (X29(fp), X30(lr)).  */
@@ -2972,6 +3006,9 @@ QEMU_BUILD_BUG_ON(FRAME_SIZE - PUSH_SIZE > 0xfff);
 
 static void tcg_target_qemu_prologue(TCGContext *s)
 {
+    /* Enable TSO if TSO is supported by current platform  */ // TODO check if right place, maybe move at the end of function
+    enable_tso();
+
     TCGReg r;
 
     /* Push (FP, LR) and allocate space for all saved registers.  */

@@ -149,7 +149,22 @@ typedef enum {
 #define TCG_TARGET_HAS_bitsel_vec       1
 #define TCG_TARGET_HAS_cmpsel_vec       0
 
-#define TCG_TARGET_DEFAULT_MO (0)
+/* This defines the natural memory order supported by this
+ * architecture before guarantees made by various barrier
+ * instructions.
+ *
+ * The aarch64 has a pretty weak memory ordering by default which
+ * allows any reordering for stores and loads.
+ *
+ * However, the M1 Mac Processor has a switch to enable x86's
+ * stronger memory ordering which saves on memory barrier instructions
+ * and thus speeds up the execution.
+ */
+#include "tcg/tcg-mo.h"
+
+extern bool target_memory_ordering;
+
+#define TCG_TARGET_DEFAULT_MO target_memory_ordering // TODO name?
 #define TCG_TARGET_HAS_MEMORY_BSWAP     0
 
 void tb_target_set_jmp_target(uintptr_t, uintptr_t, uintptr_t, uintptr_t);
