@@ -22,6 +22,8 @@ enum {
 } TSOStatus;
 TSOStatus TSO_Status;
 
+TCGBar target_memory_ordering
+
 /* We're going to re-use TCGType in setting of the SF bit, which controls
    the size of the operation performed.  If we know the values match, it
    makes things much cleaner.  */

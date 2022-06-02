@@ -162,7 +162,7 @@ typedef enum {
  */
 #include "tcg/tcg-mo.h"
 
-extern bool target_memory_ordering;
+extern TCGBar target_memory_ordering;
 
 #define TCG_TARGET_DEFAULT_MO target_memory_ordering // TODO name?
 #define TCG_TARGET_HAS_MEMORY_BSWAP     0
