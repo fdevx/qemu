@@ -22,7 +22,7 @@ enum {
 } TSOStatus;
 TSOStatus TSO_Status;
 
-TCGBar target_memory_ordering
+TCGBar target_memory_ordering;
 
 /* We're going to re-use TCGType in setting of the SF bit, which controls
    the size of the operation performed.  If we know the values match, it
@@ -2928,7 +2928,7 @@ static TCGConstraintSetIndex tcg_target_op_def(TCGOpcode op)
     }
 }
 
-void check_tso() {
+static void check_tso(void) {
     if(TSO_UNKNOWN == TSO_Status) {
         // TODO check for TSO support - currently only supported by Mac M1
         // maybe like this? https://stackoverflow.com/a/26874335
@@ -2945,7 +2945,7 @@ void check_tso() {
     }
 }
 
-void enable_tso() {
+static void enable_tso(void) {
     if(TSO_ENABLED == TSO_Status) {
         // TODO do system call to enable TSO; generate instructions to to call the system call?
     }
