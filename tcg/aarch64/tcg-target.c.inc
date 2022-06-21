@@ -14,6 +14,13 @@
 #include "../tcg-pool.c.inc"
 #include "qemu/bitops.h"
 
+#ifdef __APPLE__
+#include <stdio.h>
+#include <sys/sysctl.h>
+
+#include <pthread.h>
+#endif
+
 /* */
 enum {
     TSO_ENABLED,
@@ -2943,11 +2950,17 @@ static void check_tso(void) {
 #endif
         target_memory_ordering = TSO_ENABLED == TSO_Status ? (TCG_MO_ALL & ~TCG_MO_ST_LD) : (0);
     }
+    printf("TSO support: %s\n", TSO_ENABLED == TSO_Status ? "yes" :  TSO_DISABLED == TSO_Status ? "no" : "unknown");
 }
 
 static void enable_tso(void) {
     if(TSO_ENABLED == TSO_Status) {
         // TODO do system call to enable TSO; generate instructions to to call the system call?
+        int tsoEnable = 1;
+        size_t sizeOfFlag = sizeof(tsoEnable);
+        int errNum = sysctlbyname("kern.tso_enable", NULL, &sizeOfFlag, &tsoEnable, sizeOfFlag);
+
+        printf("Called tso_enable on thread %08x with result %d\n", pthread_self(), errNum);
     }
 }
 
