@@ -2935,6 +2935,17 @@ static TCGConstraintSetIndex tcg_target_op_def(TCGOpcode op)
     }
 }
 
+static void enable_tso(void) {
+    if(TSO_ENABLED == TSO_Status) {
+        // TODO do system call to enable TSO; generate instructions to to call the system call?
+        int tsoEnable = 1;
+        size_t sizeOfFlag = sizeof(tsoEnable);
+        int errNum = sysctlbyname("kern.tso_enable", NULL, &sizeOfFlag, &tsoEnable, sizeOfFlag);
+
+        printf("Called tso_enable on thread %08x with result %d\n", *(unsigned int*)((void*) pthread_self()), errNum);
+    }
+}
+
 static void check_tso(void) {
     if(TSO_UNKNOWN == TSO_Status) {
         // TODO check for TSO support - currently only supported by Mac M1
@@ -2954,17 +2965,6 @@ static void check_tso(void) {
     printf("Additional Info: %x/%x (x86: %x)\t", TCG_TARGET_DEFAULT_MO, target_memory_ordering, (TCG_MO_ALL & ~TCG_MO_ST_LD));
 
     enable_tso();
-}
-
-static void enable_tso(void) {
-    if(TSO_ENABLED == TSO_Status) {
-        // TODO do system call to enable TSO; generate instructions to to call the system call?
-        int tsoEnable = 1;
-        size_t sizeOfFlag = sizeof(tsoEnable);
-        int errNum = sysctlbyname("kern.tso_enable", NULL, &sizeOfFlag, &tsoEnable, sizeOfFlag);
-
-        printf("Called tso_enable on thread %08x with result %d\n", *(unsigned int*)((void*) pthread_self()), errNum);
-    }
 }
 
 static void tcg_target_init(TCGContext *s)
