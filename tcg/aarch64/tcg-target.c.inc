@@ -22,12 +22,12 @@
 #endif
 
 /* */
-enum {
+typedef enum {
     TSO_ENABLED,
     TSO_DISABLED,
     TSO_UNKNOWN
 } TSOStatus;
-TSOStatus TSO_Status;
+TSOStatus TSO_Status = TSO_UNKNOWN;
 
 TCGBar target_memory_ordering;
 
@@ -2951,6 +2951,9 @@ static void check_tso(void) {
         target_memory_ordering = TSO_ENABLED == TSO_Status ? (TCG_MO_ALL & ~TCG_MO_ST_LD) : (0);
     }
     printf("TSO support: %s\n", TSO_ENABLED == TSO_Status ? "yes" :  TSO_DISABLED == TSO_Status ? "no" : "unknown");
+    printf("Additional Info: %x/%x (x86: %x)\t", TCG_TARGET_DEFAULT_MO, target_memory_ordering, (TCG_MO_ALL & ~TCG_MO_ST_LD));
+
+    enable_tso();
 }
 
 static void enable_tso(void) {
@@ -2960,7 +2963,7 @@ static void enable_tso(void) {
         size_t sizeOfFlag = sizeof(tsoEnable);
         int errNum = sysctlbyname("kern.tso_enable", NULL, &sizeOfFlag, &tsoEnable, sizeOfFlag);
 
-        printf("Called tso_enable on thread %08x with result %d\n", pthread_self(), errNum);
+        printf("Called tso_enable on thread %08x with result %d\n", *(unsigned int*)((void*) pthread_self()), errNum);
     }
 }
 
@@ -3003,6 +3006,11 @@ static void tcg_target_init(TCGContext *s)
     check_tso();
 }
 
+static void tcg_target_register_thread(void) {
+    /* Enable TSO if TSO is supported by current platform  */
+    enable_tso();
+}
+
 /* Saving pairs: (X19, X20) .. (X27, X28), (X29(fp), X30(lr)).  */
 #define PUSH_SIZE  ((30 - 19 + 1) * 8)
 
@@ -3021,9 +3029,6 @@ QEMU_BUILD_BUG_ON(FRAME_SIZE - PUSH_SIZE > 0xfff);
 
 static void tcg_target_qemu_prologue(TCGContext *s)
 {
-    /* Enable TSO if TSO is supported by current platform  */ // TODO check if right place, maybe move at the end of function
-    enable_tso();
-
     TCGReg r;
 
     /* Push (FP, LR) and allocate space for all saved registers.  */

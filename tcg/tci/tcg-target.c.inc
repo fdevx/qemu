@@ -855,6 +855,11 @@ static void tcg_target_init(TCGContext *s)
                   TCG_STATIC_FRAME_SIZE);
 }
 
+static void tcg_target_register_thread(void)
+{
+    // empty
+}
+
 /* Generate global QEMU prologue and epilogue code. */
 static inline void tcg_target_qemu_prologue(TCGContext *s)
 {

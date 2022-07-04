@@ -69,6 +69,7 @@
 /* Forward declarations for functions declared in tcg-target.c.inc and
    used here. */
 static void tcg_target_init(TCGContext *s);
+static void tcg_target_register_thread(void);
 static void tcg_target_qemu_prologue(TCGContext *s);
 static bool patch_reloc(tcg_insn_unit *code_ptr, int type,
                         intptr_t value, intptr_t addend);
@@ -459,6 +460,8 @@ static void alloc_tcg_plugin_context(TCGContext *s)
 void tcg_register_thread(void)
 {
     tcg_ctx = &tcg_init_ctx;
+
+    tcg_target_register_thread();
 }
 #else
 void tcg_register_thread(void)
@@ -488,6 +491,8 @@ void tcg_register_thread(void)
     }
 
     tcg_ctx = s;
+
+    tcg_target_register_thread();
 }
 #endif /* !CONFIG_USER_ONLY */
 

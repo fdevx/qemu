@@ -3383,6 +3383,11 @@ static void tcg_target_init(TCGContext *s)
     }
 }
 
+static void tcg_target_register_thread(void)
+{
+    // empty
+}
+
 #define FRAME_SIZE  ((int)(TCG_TARGET_CALL_STACK_OFFSET          \
                            + TCG_STATIC_CALL_ARGS_SIZE           \
                            + CPU_TEMP_BUF_NLONGS * sizeof(long)))

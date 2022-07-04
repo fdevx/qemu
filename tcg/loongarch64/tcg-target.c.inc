@@ -1699,6 +1699,11 @@ static void tcg_target_init(TCGContext *s)
     tcg_regset_set_reg(s->reserved_regs, TCG_REG_RESERVED);
 }
 
+static void tcg_target_register_thread(void)
+{
+    // empty
+}
+
 typedef struct {
     DebugFrameHeader h;
     uint8_t fde_def_cfa[4];

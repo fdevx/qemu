@@ -2451,6 +2451,11 @@ static void tcg_target_init(TCGContext *s)
     tcg_regset_set_reg(s->reserved_regs, TCG_VEC_TMP);
 }
 
+static void tcg_target_register_thread(void)
+{
+    // empty
+}
+
 static void tcg_out_ld(TCGContext *s, TCGType type, TCGReg arg,
                        TCGReg arg1, intptr_t arg2)
 {

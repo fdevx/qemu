@@ -3948,6 +3948,11 @@ static void tcg_target_init(TCGContext *s)
     }
 }
 
+static void tcg_target_register_thread(void)
+{
+    // empty
+}
+
 #ifdef __ELF__
 typedef struct {
     DebugFrameCIE cie;
