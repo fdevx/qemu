@@ -2963,8 +2963,6 @@ static void check_tso(void) {
     }
     printf("TSO support: %s\n", TSO_ENABLED == TSO_Status ? "yes" :  TSO_DISABLED == TSO_Status ? "no" : "unknown");
     printf("Additional Info: %x/%x (x86: %x)\t", TCG_TARGET_DEFAULT_MO, target_memory_ordering, (TCG_MO_ALL & ~TCG_MO_ST_LD));
-
-    enable_tso();
 }
 
 static void tcg_target_init(TCGContext *s)
