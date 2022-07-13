@@ -2453,7 +2453,7 @@ static void tcg_target_init(TCGContext *s)
 
 static void tcg_target_register_thread(void)
 {
-    // empty
+    /* empty */
 }
 
 static void tcg_out_ld(TCGContext *s, TCGType type, TCGReg arg,

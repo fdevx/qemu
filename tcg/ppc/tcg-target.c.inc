@@ -3950,7 +3950,7 @@ static void tcg_target_init(TCGContext *s)
 
 static void tcg_target_register_thread(void)
 {
-    // empty
+    /* empty */
 }
 
 #ifdef __ELF__

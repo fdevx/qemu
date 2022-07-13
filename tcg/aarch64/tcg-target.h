@@ -157,14 +157,14 @@ typedef enum {
  * allows any reordering for stores and loads.
  *
  * However, the M1 Mac Processor has a switch to enable x86's
- * stronger memory ordering which saves on memory barrier instructions
- * and thus speeds up the execution.
+ * stronger memory ordering in hardware which should
+ * speed up the execution.
  */
 #include "tcg/tcg-mo.h"
 
 extern TCGBar target_memory_ordering;
 
-#define TCG_TARGET_DEFAULT_MO target_memory_ordering // TODO name?
+#define TCG_TARGET_DEFAULT_MO target_memory_ordering
 #define TCG_TARGET_HAS_MEMORY_BSWAP     0
 
 void tb_target_set_jmp_target(uintptr_t, uintptr_t, uintptr_t, uintptr_t);

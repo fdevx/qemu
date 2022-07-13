@@ -2935,9 +2935,9 @@ static TCGConstraintSetIndex tcg_target_op_def(TCGOpcode op)
     }
 }
 
-static void enable_tso(void) {
-    if(TSO_ENABLED == TSO_Status) {
-        // TODO do system call to enable TSO; generate instructions to to call the system call?
+static void enable_tso(void)
+{
+    if (TSO_ENABLED == TSO_Status) {
         int tsoEnable = 1;
         size_t sizeOfFlag = sizeof(tsoEnable);
         int errNum = sysctlbyname("kern.tso_enable", NULL, &sizeOfFlag, &tsoEnable, sizeOfFlag);
@@ -2946,23 +2946,38 @@ static void enable_tso(void) {
     }
 }
 
-static void check_tso(void) {
-    if(TSO_UNKNOWN == TSO_Status) {
-        // TODO check for TSO support - currently only supported by Mac M1
-        // maybe like this? https://stackoverflow.com/a/26874335
-        // but preprocessor seems to be easier
+static void check_tso(void)
+{
+    if (TSO_UNKNOWN == TSO_Status) {
+        // check for TSO support - currently only supported by Mac M1
 
         TSO_Status = TSO_DISABLED;
 
 #ifdef __APPLE__
-        // Assumption: this code only gets compiled if we compile for Apple while the target architectue is arm
-        // this means Rosetta 2 should be available and with it thre should be hardware support for TSO
-        TSO_Status = TSO_ENABLED;
+        int tsoEnable = 1;
+        size_t sizeOfFlag = sizeof(tsoEnable);
+        int errNum = ;
+        if (sysctlbyname("kern.tso_enable", NULL, &sizeOfFlag, &tsoEnable, sizeOfFlag) == 0) {
+            /* TSO enabler kernel module is available
+             * Since this thread is does not run tcg code disable tso again
+             */
+            TSO_Status = TSO_ENABLED;
+
+            tsoEnable = 0;
+            sysctlbyname("kern.tso_enable", NULL, &sizeOfFlag, &tsoEnable, sizeOfFlag);
+        }
+
 #endif
-        target_memory_ordering = TSO_ENABLED == TSO_Status ? (TCG_MO_ALL & ~TCG_MO_ST_LD) : (0);
+        if (TSO_ENABLED == TSO_Status) {
+            target_memory_ordering = (TCG_MO_ALL & ~TCG_MO_ST_LD);
+        } else {
+            target_memory_ordering = 0;
+        }
     }
-    printf("TSO support: %s\n", TSO_ENABLED == TSO_Status ? "yes" :  TSO_DISABLED == TSO_Status ? "no" : "unknown");
-    printf("Additional Info: %x/%x (x86: %x)\t", TCG_TARGET_DEFAULT_MO, target_memory_ordering, (TCG_MO_ALL & ~TCG_MO_ST_LD));
+    printf("TSO support: %s\n", TSO_ENABLED == TSO_Status ? "yes" :
+                    TSO_DISABLED == TSO_Status ? "no" : "unknown");
+    printf("Additional Info: %x/%x (x86: %x)\t", TCG_TARGET_DEFAULT_MO,
+           target_memory_ordering, (TCG_MO_ALL & ~TCG_MO_ST_LD));
 }
 
 static void tcg_target_init(TCGContext *s)
