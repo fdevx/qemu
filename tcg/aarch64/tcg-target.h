@@ -149,7 +149,8 @@ typedef enum {
 #define TCG_TARGET_HAS_bitsel_vec       1
 #define TCG_TARGET_HAS_cmpsel_vec       0
 
-/* This defines the natural memory order supported by this
+/*
+ * This defines the natural memory order supported by this
  * architecture before guarantees made by various barrier
  * instructions.
  *

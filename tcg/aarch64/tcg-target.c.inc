@@ -2938,27 +2938,32 @@ static TCGConstraintSetIndex tcg_target_op_def(TCGOpcode op)
 static void enable_tso(void)
 {
     if (TSO_ENABLED == TSO_Status) {
+#ifdef __APPLE__
         int tsoEnable = 1;
         size_t sizeOfFlag = sizeof(tsoEnable);
-        int errNum = sysctlbyname("kern.tso_enable", NULL, &sizeOfFlag, &tsoEnable, sizeOfFlag);
+        int errNum = sysctlbyname("kern.tso_enable", NULL,
+                                  &sizeOfFlag, &tsoEnable, sizeOfFlag);
 
-        printf("Called tso_enable on thread %08x with result %d\n", *(unsigned int*)((void*) pthread_self()), errNum);
+        printf("Called tso_enable on thread %08x with result %d\n",
+               *(unsigned int *)((void *) pthread_self()), errNum);
+#endif
     }
 }
 
 static void check_tso(void)
 {
     if (TSO_UNKNOWN == TSO_Status) {
-        // check for TSO support - currently only supported by Mac M1
+        /* check for TSO support - currently only supported by Mac M1 */
 
         TSO_Status = TSO_DISABLED;
 
 #ifdef __APPLE__
         int tsoEnable = 1;
         size_t sizeOfFlag = sizeof(tsoEnable);
-        int errNum = ;
-        if (sysctlbyname("kern.tso_enable", NULL, &sizeOfFlag, &tsoEnable, sizeOfFlag) == 0) {
-            /* TSO enabler kernel module is available
+        if (sysctlbyname("kern.tso_enable", NULL, &sizeOfFlag,
+                         &tsoEnable, sizeOfFlag) == 0) {
+            /*
+             * TSO enabler kernel module is available
              * Since this thread is does not run tcg code disable tso again
              */
             TSO_Status = TSO_ENABLED;
@@ -3015,11 +3020,12 @@ static void tcg_target_init(TCGContext *s)
     tcg_regset_set_reg(s->reserved_regs, TCG_REG_X18); /* platform register */
     tcg_regset_set_reg(s->reserved_regs, TCG_VEC_TMP);
 
-    //check if TSO is available to save on memory fences, TSO gets enabled per thread
+    /* check if TSO is available to save on memory fences, TSO gets enabled per thread */
     check_tso();
 }
 
-static void tcg_target_register_thread(void) {
+static void tcg_target_register_thread(void)
+{
     /* Enable TSO if TSO is supported by current platform  */
     enable_tso();
 }
