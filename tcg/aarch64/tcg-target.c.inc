@@ -2989,6 +2989,8 @@ static void check_tso(void)
             target_memory_ordering = 0;
         }
     }
+
+    const char* cf = NULL;
 #ifndef FENCES_CONST
 #if FENCE_TYPE == 2
     TSO_Status = TSO_ENABLED;
@@ -3000,7 +3002,12 @@ static void check_tso(void)
     TSO_Status = TSO_DISABLED;
     target_memory_ordering = (TCG_MO_ALL & ~TCG_MO_ST_LD);
 #endif
+    cf = "yes";
 #endif
+
+    printf("Fence type: %s, const: %s\n", FENCE_TYPE == 0 ? "none" :
+                                        FENCE_TYPE == 1 ? "software" : "hardware",
+                                        cf == NULL ? "no" : cf);
 
 
     printf("TSO support: %s\n", TSO_ENABLED == TSO_Status ? "yes" :
