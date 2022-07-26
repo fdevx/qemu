@@ -2937,7 +2937,7 @@ static TCGConstraintSetIndex tcg_target_op_def(TCGOpcode op)
 
 static void enable_tso(void)
 {
-    if (TSO_ENABLED == TSO_Status) {
+    /*if (TSO_ENABLED == TSO_Status) {
 #ifdef __APPLE__
         int tsoEnable = 1;
         size_t sizeOfFlag = sizeof(tsoEnable);
@@ -2947,7 +2947,17 @@ static void enable_tso(void)
         printf("Called tso_enable on thread %08x with result %d\n",
                *(unsigned int *)((void *) pthread_self()), errNum);
 #endif
-    }
+    }*/
+
+#if FENCE_TYPE == 2
+    int tsoEnable = 1;
+    size_t sizeOfFlag = sizeof(tsoEnable);
+    int errNum = sysctlbyname("kern.tso_enable", NULL,
+                              &sizeOfFlag, &tsoEnable, sizeOfFlag);
+
+    printf("Called tso_enable on thread %08x with result %d\n",
+           *(unsigned int *)((void *) pthread_self()), errNum);
+#endif
 }
 
 static void check_tso(void)
@@ -2979,9 +2989,23 @@ static void check_tso(void)
             target_memory_ordering = 0;
         }
     }
+#ifndef FENCES_CONST
+#if FENCE_TYPE == 2
+    TSO_Status = TSO_ENABLED;
+    target_memory_ordering = (TCG_MO_ALL & ~TCG_MO_ST_LD);
+#elif FENCE_TYPE == 1
+    TSO_Status = TSO_DISABLED;
+    target_memory_ordering = 0;
+#elif FENCE_TYPE == 0
+    TSO_Status = TSO_DISABLED;
+    target_memory_ordering = (TCG_MO_ALL & ~TCG_MO_ST_LD);
+#endif
+#endif
+
+
     printf("TSO support: %s\n", TSO_ENABLED == TSO_Status ? "yes" :
                     TSO_DISABLED == TSO_Status ? "no" : "unknown");
-    printf("Additional Info: %x/%x (x86: %x)\t", TCG_TARGET_DEFAULT_MO,
+    printf("Additional Info(m/v):  %x/%x (x86: %x)\t", TCG_TARGET_DEFAULT_MO,
            target_memory_ordering, (TCG_MO_ALL & ~TCG_MO_ST_LD));
 }
 

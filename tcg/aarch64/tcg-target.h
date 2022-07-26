@@ -13,6 +13,12 @@
 #ifndef AARCH64_TCG_TARGET_H
 #define AARCH64_TCG_TARGET_H
 
+// just for testing - TODO remove
+//#define FENCES_CONST
+// fence type: 0 - none; 1 - normal; 2 - tso (without fences)
+#define FENCE_TYPE 0
+
+
 #define TCG_TARGET_INSN_UNIT_SIZE  4
 #define TCG_TARGET_TLB_DISPLACEMENT_BITS 24
 #define MAX_CODE_GEN_BUFFER_SIZE  (2 * GiB)
@@ -165,7 +171,19 @@ typedef enum {
 
 extern TCGBar target_memory_ordering;
 
+#ifndef FENCES_CONST
 #define TCG_TARGET_DEFAULT_MO target_memory_ordering
+
+#else
+
+#if FENCE_TYPE == 1
+  #define TCG_TARGET_DEFAULT_MO 0
+#elif
+  #define TCG_TARGET_DEFAULT_MO (TCG_MO_ALL & ~TCG_MO_ST_LD)
+#endif
+
+#endif
+
 #define TCG_TARGET_HAS_MEMORY_BSWAP     0
 
 void tb_target_set_jmp_target(uintptr_t, uintptr_t, uintptr_t, uintptr_t);
